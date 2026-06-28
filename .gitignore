@@ -64,7 +64,6 @@ bazel-out/
 node_modules/
 npm-debug.log*
 yarn-error.log*
-package-lock.json
 
 # Angular cache
 .angular/
@@ -95,12 +94,7 @@ docker-compose.override.yml
 # ──────────────────────────────────────────
 
 # VS Code
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
-!.vscode/mcp.json
+.vscode/
 .history/
 
 # ──────────────────────────────────────────

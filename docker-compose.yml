@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  bank-api:
+    build:
+      context: ./bank-api
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/v1/accounts?userId=1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - swedenbank-net
+
+  bank-frontend:
+    build:
+      context: ./bank-frontend
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      bank-api:
+        condition: service_healthy
+    networks:
+      - swedenbank-net
+
+networks:
+  swedenbank-net:
+    driver: bridge
