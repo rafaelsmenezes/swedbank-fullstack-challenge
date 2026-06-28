@@ -29,11 +29,208 @@ Chart.register(
   Legend,
 );
 
+const FLAG_MAP: Record<Currency, string> = {
+  EUR: '🇪🇺', USD: '🇺🇸', SEK: '🇸🇪', GBP: '🇬🇧', VND: '🇻🇳',
+};
+
 @Component({
   selector: 'app-account-overview',
   standalone: true,
   imports: [CommonModule, FormsModule, CurrencyFormatPipe],
-  templateUrl: './account-overview.component.html',
+  template: `
+    <div class="account-page">
+      <!-- Back -->
+      <div class="back-bar">
+        <button class="back-link" (click)="goBack()">← Back to Accounts</button>
+      </div>
+
+      @if (loading() && !account()) {
+        <div class="spinner-wrapper">
+          <div class="spinner"></div>
+          <p>Loading account…</p>
+        </div>
+      }
+
+      @if (error()) {
+        <div class="error-banner">
+          <span>{{ error() }}</span>
+          <button (click)="retryLoad()">Retry</button>
+        </div>
+      }
+
+      @if (account()) {
+        <!-- Top two-column -->
+        <div class="top-grid">
+          <!-- Account Info -->
+          <div class="account-info-panel">
+            <div class="flag-large">{{ getFlag(account()!.currency) }}</div>
+            <div class="info-currency">{{ account()!.currency }} Account</div>
+            <div class="info-balance">
+              <!-- BUG FIX: use dedicated balance signal so updating balance does not re-render the entire account-dependent subtree (including form inputs) (Bug 2) -->
+              {{ balance() | currencyFormat: account()!.currency }}
+            </div>
+            <div class="info-meta">
+              Account #{{ account()!.id }} · Since {{ getSinceYear(account()!.createdAt) }}
+            </div>
+          </div>
+
+          <!-- Quick Actions -->
+          <div class="quick-actions card">
+            <!-- Credit -->
+            <div class="qa-section">
+              <div class="qa-header">
+                <span class="dot dot-green"></span>
+                <span class="qa-label">Credit</span>
+              </div>
+              <div class="qa-row">
+                <input
+                  type="number"
+                  class="form-input qa-input"
+                  placeholder="Amount"
+                  min="0.01"
+                  step="0.01"
+                  [ngModel]="creditAmount()"
+                  (ngModelChange)="creditAmount.set($event)"
+                  name="creditAmount"
+                />
+                <select class="form-select qa-input" [(ngModel)]="creditFromCurrency" name="creditFromCurrency">
+                  @for (c of currencies; track c) {
+                    <option [value]="c">{{ c }}</option>
+                  }
+                </select>
+              </div>
+              <input
+                type="text"
+                class="form-input qa-input"
+                placeholder="Description (optional)"
+                [ngModel]="creditDescription()"
+                (ngModelChange)="creditDescription.set($event)"
+                name="creditDescription"
+              />
+              <button
+                class="btn btn-green btn-full qa-btn"
+                (click)="credit()"
+                [disabled]="operationLoading() || (creditAmount() ?? 0) <= 0"
+              >
+                {{ operationLoading() ? 'Processing…' : '+ Credit →' }}
+              </button>
+            </div>
+
+            <div class="qa-divider"></div>
+
+            <!-- Debit -->
+            <div class="qa-section">
+              <div class="qa-header">
+                <span class="dot dot-red"></span>
+                <span class="qa-label">Debit</span>
+              </div>
+              <div class="qa-row">
+                <input
+                  type="number"
+                  class="form-input qa-input"
+                  placeholder="Amount"
+                  min="0.01"
+                  step="0.01"
+                  [ngModel]="debitAmount()"
+                  (ngModelChange)="debitAmount.set($event)"
+                  name="debitAmount"
+                />
+              </div>
+              <input
+                type="text"
+                class="form-input qa-input"
+                placeholder="Description (optional)"
+                [ngModel]="debitDescription()"
+                (ngModelChange)="debitDescription.set($event)"
+                name="debitDescription"
+              />
+              <button
+                class="btn btn-red btn-full qa-btn"
+                (click)="debit()"
+                [disabled]="operationLoading() || (debitAmount() ?? 0) <= 0"
+              >
+                {{ operationLoading() ? 'Processing…' : '- Debit →' }}
+              </button>
+            </div>
+
+            @if (operationSuccess()) {
+              <div class="success-banner" style="margin-top:12px;">{{ operationSuccess() }}</div>
+            }
+            @if (operationError()) {
+              <div class="error-banner" style="margin-top:12px;">{{ operationError() }}</div>
+            }
+          </div>
+        </div>
+
+        <!-- Chart -->
+        <section class="chart-section card">
+          <h2 class="section-title">Balance Timeline</h2>
+          <!-- BUG FIX: always render canvas in DOM (use [hidden] instead of @if) so @ViewChild is available immediately after initial render; build only when visible data present (Bug 1) -->
+          <div class="chart-wrapper" [hidden]="transactions().length === 0">
+            <canvas #chartCanvas></canvas>
+          </div>
+          @if (transactions().length === 0) {
+            <div class="chart-placeholder">No transactions yet to display chart.</div>
+          }
+        </section>
+
+        <!-- Transaction History -->
+        <section class="tx-section card">
+          <h2 class="section-title">Transaction History</h2>
+
+          @if (transactions().length === 0 && !loadingMore()) {
+            <div class="empty-state">No transactions found.</div>
+          }
+
+          <ul class="tx-list">
+            @for (tx of transactions(); track tx.id) {
+              <li
+                class="tx-item"
+                (click)="goToTransaction(tx.id)"
+                role="button"
+                tabindex="0"
+                (keydown.enter)="goToTransaction(tx.id)"
+              >
+                <div
+                  class="tx-icon"
+                  [class.credit]="tx.type === 'CREDIT'"
+                  [class.debit]="tx.type === 'DEBIT'"
+                >
+                  {{ tx.type === 'CREDIT' ? '↑' : '↓' }}
+                </div>
+                <div class="tx-info">
+                  <div class="tx-desc">{{ tx.description || '—' }}</div>
+                  <div class="tx-date">{{ tx.createdAt | date: 'mediumDate' }}</div>
+                </div>
+                <div
+                  class="tx-amount"
+                  [class.credit]="tx.type === 'CREDIT'"
+                  [class.debit]="tx.type === 'DEBIT'"
+                >
+                  {{ tx.type === 'CREDIT' ? '+' : '-' }}{{ tx.amount | number: '1.2-2' }}
+                  <span class="arrow">→</span>
+                </div>
+              </li>
+            }
+          </ul>
+
+          @if (loadingMore()) {
+            <div class="loading-more">
+              <div class="spinner spinner--sm"></div>
+            </div>
+          }
+
+          @if (!isLastPage()) {
+            <div #sentinel class="sentinel"></div>
+          }
+
+          @if (isLastPage() && transactions().length > 0) {
+            <div class="end-state">All transactions loaded</div>
+          }
+        </section>
+      }
+    </div>
+  `,
   styleUrl: './account-overview.component.scss',
 })
 export class AccountOverviewComponent implements OnInit, OnDestroy {
@@ -45,6 +242,8 @@ export class AccountOverviewComponent implements OnInit, OnDestroy {
   @ViewChild('sentinel') sentinel!: ElementRef<HTMLDivElement>;
 
   account = signal<Account | null>(null);
+  // BUG FIX: separate balance signal so only balance display updates on refresh after ops, preventing re-renders of form inputs (Bug 2)
+  balance = signal(0);
   transactions = signal<Transaction[]>([]);
   loading = signal(true);
   loadingMore = signal(false);
@@ -63,18 +262,20 @@ export class AccountOverviewComponent implements OnInit, OnDestroy {
 
   currencies: Currency[] = ['EUR', 'USD', 'SEK', 'GBP', 'VND'];
 
-  creditAmount = 0;
+  // BUG FIX: convert form fields to signals to ensure updates trigger change detection reliably after async operations (Bug 3)
+  creditAmount = signal<number | null>(null);
   creditFromCurrency: Currency = 'EUR';
-  creditDescription = '';
+  creditDescription = signal('');
 
-  debitAmount = 0;
-  debitDescription = '';
+  debitAmount = signal<number | null>(null);
+  debitDescription = signal('');
 
   ngOnInit(): void {
     this.accountId = Number(this.route.snapshot.paramMap.get('id'));
     this.accountService.getAccount(this.accountId).subscribe({
       next: (account) => {
         this.account.set(account);
+        this.balance.set(account.balance);
         this.loadTransactions();
       },
       error: () => {
@@ -96,7 +297,12 @@ export class AccountOverviewComponent implements OnInit, OnDestroy {
         this.isLastPage.set(page.last);
         this.loading.set(false);
         setTimeout(() => {
-          this.buildChart();
+          // BUG FIX: after tx load, use updateChart (which builds only if needed) once canvas guaranteed in DOM (Bug 1)
+          if (this.chart) {
+            this.updateChart();
+          } else {
+            this.buildChart();
+          }
           if (!this.isLastPage()) {
             this.setupObserver();
           }
@@ -130,16 +336,16 @@ export class AccountOverviewComponent implements OnInit, OnDestroy {
   }
 
   credit(): void {
-    if (this.creditAmount <= 0) return;
+    if ((this.creditAmount() ?? 0) <= 0) return;
 
     this.operationLoading.set(true);
     this.operationError.set(null);
     this.operationSuccess.set(null);
 
     const request: CreditRequest = {
-      amount: this.creditAmount,
+      amount: this.creditAmount()!,
       fromCurrency: this.creditFromCurrency,
-      ...(this.creditDescription.trim() && { description: this.creditDescription.trim() }),
+      ...(this.creditDescription().trim() && { description: this.creditDescription().trim() }),
     };
 
     this.accountService.credit(this.accountId, request).subscribe({
@@ -148,16 +354,15 @@ export class AccountOverviewComponent implements OnInit, OnDestroy {
         this.operationSuccess.set('Credit applied successfully.');
         setTimeout(() => this.operationSuccess.set(null), 3000);
 
-        this.accountService.getAccount(this.accountId).subscribe({
-          next: (account) => this.account.set(account),
-        });
+        // BUG FIX: update only balance signal instead of reloading full account (avoids re-render flicker in inputs) (Bug 2)
+        this.balance.set(tx.balanceAfter);
 
         this.transactions.update((prev) => [tx, ...prev]);
         this.updateChart();
 
-        this.creditAmount = 0;
+        this.creditAmount.set(null);
         this.creditFromCurrency = 'EUR';
-        this.creditDescription = '';
+        this.creditDescription.set('');
       },
       error: (err) => {
         this.operationLoading.set(false);
@@ -167,16 +372,16 @@ export class AccountOverviewComponent implements OnInit, OnDestroy {
   }
 
   debit(): void {
-    if (this.debitAmount <= 0) return;
+    if ((this.debitAmount() ?? 0) <= 0 || !this.account()) return;
 
     this.operationLoading.set(true);
     this.operationError.set(null);
     this.operationSuccess.set(null);
 
     const request: DebitRequest = {
-      amount: this.debitAmount,
+      amount: this.debitAmount()!,
       currency: this.account()!.currency,
-      ...(this.debitDescription.trim() && { description: this.debitDescription.trim() }),
+      ...(this.debitDescription().trim() && { description: this.debitDescription().trim() }),
     };
 
     this.accountService.debit(this.accountId, request).subscribe({
@@ -185,15 +390,14 @@ export class AccountOverviewComponent implements OnInit, OnDestroy {
         this.operationSuccess.set('Debit applied successfully.');
         setTimeout(() => this.operationSuccess.set(null), 3000);
 
-        this.accountService.getAccount(this.accountId).subscribe({
-          next: (account) => this.account.set(account),
-        });
+        // BUG FIX: update only balance signal instead of reloading full account (avoids re-render flicker in inputs) (Bug 2)
+        this.balance.set(tx.balanceAfter);
 
         this.transactions.update((prev) => [tx, ...prev]);
         this.updateChart();
 
-        this.debitAmount = 0;
-        this.debitDescription = '';
+        this.debitAmount.set(null);
+        this.debitDescription.set('');
       },
       error: (err) => {
         this.operationLoading.set(false);
@@ -208,7 +412,7 @@ export class AccountOverviewComponent implements OnInit, OnDestroy {
     );
     return {
       labels: sorted.map((t) =>
-        new Date(t.createdAt).toLocaleDateString('en-GB', {
+        new Date(t.createdAt).toLocaleDateString('en-US', {
           month: 'short',
           day: 'numeric',
         }),
@@ -232,12 +436,12 @@ export class AccountOverviewComponent implements OnInit, OnDestroy {
           {
             label: 'Balance',
             data,
-            borderColor: '#4a2c8f',
-            backgroundColor: 'rgba(74, 44, 143, 0.1)',
+            borderColor: '#EF7B10',
+            backgroundColor: 'rgba(239, 123, 16, 0.1)',
             fill: true,
             tension: 0.3,
             pointRadius: 3,
-            pointHoverRadius: 6,
+            pointHoverRadius: 5,
           },
         ],
       },
@@ -245,12 +449,21 @@ export class AccountOverviewComponent implements OnInit, OnDestroy {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          tooltip: { mode: 'index', intersect: false },
+          tooltip: {
+            mode: 'index',
+            intersect: false,
+            backgroundColor: '#512B2B',
+          },
           legend: { display: false },
         },
         scales: {
-          x: { grid: { display: false } },
-          y: { beginAtZero: false },
+          x: {
+            grid: { color: '#E8E8E8', lineWidth: 1 },
+          },
+          y: {
+            beginAtZero: false,
+            grid: { color: '#E8E8E8', lineWidth: 1 },
+          },
         },
       },
     });
@@ -280,11 +493,38 @@ export class AccountOverviewComponent implements OnInit, OnDestroy {
     this.observer.observe(this.sentinel.nativeElement);
   }
 
+  retryLoad(): void {
+    this.error.set(null);
+    this.loading.set(true);
+    this.accountService.getAccount(this.accountId).subscribe({
+      next: (account) => {
+        this.account.set(account);
+        this.balance.set(account.balance);
+        this.transactions.set([]);
+        this.currentPage = 0;
+        this.loadTransactions();
+      },
+      error: () => {
+        this.error.set('Failed to load account.');
+        this.loading.set(false);
+      },
+    });
+  }
+
   goToTransaction(id: number): void {
     this.router.navigate(['/transaction', id]);
   }
 
   goBack(): void {
     this.router.navigate(['/']);
+  }
+
+  getFlag(currency: Currency): string {
+    return FLAG_MAP[currency] ?? '🏦';
+  }
+
+  getSinceYear(dateStr: string): string {
+    const d = new Date(dateStr);
+    return d.getFullYear().toString();
   }
 }

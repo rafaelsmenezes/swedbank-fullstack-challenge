@@ -1,41 +1,148 @@
+/* ========================================
+   Swedbank Brand Design System
+   ======================================== */
+
+// Color Palette (SCSS vars)
+$orange:        #EF7B10;
+$orange-dark:   #C8590A;
+$orange-light:  #FDE8D0;
+$orange-subtle: #FFF3E8;
+
+$brown-dark:    #512B2B;
+$gray-800:      #1A1A1A;
+$gray-600:      #4A4A4A;
+$gray-400:      #9A9A9A;
+$gray-200:      #E8E8E8;
+$gray-100:      #F5F5F5;
+$white:         #FFFFFF;
+
+$success:       #2E7D32;
+$success-light: #E8F5E9;
+$danger:        #C62828;
+$danger-light:  #FFEBEE;
+$warning:       #EF7B10;
+
+$bg-page:       #FFF8F3;
+$bg-card:       #FFFFFF;
+
+// Typography
+$text-xs:   0.75rem;
+$text-sm:   0.875rem;
+$text-base: 1rem;
+$text-lg:   1.125rem;
+$text-xl:   1.25rem;
+$text-2xl:  1.5rem;
+$text-3xl:  2rem;
+
+// Spacing & Radius
+$radius-sm:  6px;
+$radius-md:  12px;
+$radius-lg:  16px;
+$radius-xl:  24px;
+
+$shadow-sm:  0 1px 3px rgba(0,0,0,0.08);
+$shadow-md:  0 4px 12px rgba(0,0,0,0.10);
+$shadow-lg:  0 8px 24px rgba(0,0,0,0.12);
+
+/* CSS Custom Properties on :root */
+:root {
+  --orange: #EF7B10;
+  --orange-dark: #C8590A;
+  --orange-light: #FDE8D0;
+  --orange-subtle: #FFF3E8;
+
+  --brown-dark: #512B2B;
+  --gray-800: #1A1A1A;
+  --gray-600: #4A4A4A;
+  --gray-400: #9A9A9A;
+  --gray-200: #E8E8E8;
+  --gray-100: #F5F5F5;
+  --white: #FFFFFF;
+
+  --success: #2E7D32;
+  --success-light: #E8F5E9;
+  --danger: #C62828;
+  --danger-light: #FFEBEE;
+  --warning: #EF7B10;
+
+  --bg-page: #FFF8F3;
+  --bg-card: #FFFFFF;
+
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.10);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.12);
+}
+
+/* Global Reset & Base */
 *,
 *::before,
 *::after {
   box-sizing: border-box;
 }
 
-body {
+html, body {
   margin: 0;
   padding: 0;
-  -webkit-font-smoothing: antialiased;
 }
 
-// Skeleton
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: $bg-page;
+  color: $gray-800;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.5;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: $gray-100;
+}
+::-webkit-scrollbar-thumb {
+  background: $orange;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: $orange-dark;
+}
+
+/* Skeleton (orange-tinted) */
 .skeleton-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 16px;
   padding: 8px 0;
 }
 .skeleton-card {
-  background: white;
-  border-radius: 12px;
+  background: $white;
+  border-radius: $radius-lg;
   padding: 24px;
   display: flex;
   flex-direction: column;
   gap: 12px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  box-shadow: $shadow-sm;
 }
 .skeleton-badge {
-  width: 48px; height: 24px;
-  border-radius: 12px;
-  background: linear-gradient(90deg, #eee 25%, #f5f5f5 50%, #eee 75%);
+  width: 72px;
+  height: 28px;
+  border-radius: $radius-sm;
+  background: linear-gradient(90deg, $orange-subtle 25%, $orange-light 50%, $orange-subtle 75%);
   background-size: 200% 100%;
   animation: shimmer 1.4s infinite;
 }
 .skeleton-line {
-  height: 16px; border-radius: 4px;
-  background: linear-gradient(90deg, #eee 25%, #f5f5f5 50%, #eee 75%);
+  height: 18px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, $orange-subtle 25%, $orange-light 50%, $orange-subtle 75%);
   background-size: 200% 100%;
   animation: shimmer 1.4s infinite;
   &.wide { width: 80%; }
@@ -46,37 +153,171 @@ body {
   100% { background-position: -200% 0; }
 }
 
-// Spinner
+/* Spinner */
 .spinner-wrapper {
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  padding: 48px; color: #888; gap: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+  color: $gray-400;
+  gap: 12px;
 }
 .spinner {
-  width: 36px; height: 36px;
-  border: 3px solid #ede8f8;
-  border-top-color: #4a2c8f;
+  width: 36px;
+  height: 36px;
+  border: 3px solid $orange-light;
+  border-top-color: $orange;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
-  &--sm { width: 20px; height: 20px; border-width: 2px; }
+  &--sm {
+    width: 20px;
+    height: 20px;
+    border-width: 2px;
+  }
 }
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
 .loading-more {
-  display: flex; justify-content: center; padding: 16px;
+  display: flex;
+  justify-content: center;
+  padding: 16px;
 }
 
-// Error banner
-.error-banner {
-  display: flex; align-items: center; gap: 12px;
-  background: #ffebee; color: #c62828;
-  padding: 14px 16px; border-radius: 8px;
+/* Banners */
+.error-banner,
+.success-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: $radius-md;
   margin: 16px 0;
-  button {
-    margin-left: auto; padding: 6px 14px;
-    background: #c62828; color: white;
-    border: none; border-radius: 4px;
-    cursor: pointer; font-size: 0.875rem;
+  font-size: $text-sm;
+}
+.error-banner {
+  background: $danger-light;
+  color: $danger;
+}
+.success-banner {
+  background: $success-light;
+  color: $success;
+}
+.error-banner button,
+.success-banner button {
+  margin-left: auto;
+  padding: 6px 14px;
+  background: $danger;
+  color: $white;
+  border: none;
+  border-radius: $radius-sm;
+  cursor: pointer;
+  font-size: $text-sm;
+  font-weight: 500;
+}
+.success-banner button {
+  background: $success;
+}
+
+/* Common card */
+.card {
+  background: $bg-card;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-sm;
+  padding: 24px;
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 20px;
+  border-radius: $radius-md;
+  font-size: $text-base;
+  font-weight: 600;
+  font-family: inherit;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease, transform 0.1s ease;
+  text-decoration: none;
+
+  &.btn-orange {
+    background: $orange;
+    color: $white;
   }
+  &.btn-orange:hover:not(:disabled) {
+    background: $orange-dark;
+  }
+  &.btn-green {
+    background: $success;
+    color: $white;
+  }
+  &.btn-green:hover:not(:disabled) {
+    background: #1b5e20;
+  }
+  &.btn-red {
+    background: $danger;
+    color: $white;
+  }
+  &.btn-red:hover:not(:disabled) {
+    background: #b71c1c;
+  }
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  &.btn-full {
+    width: 100%;
+  }
+}
+
+/* Form elements */
+.form-input,
+.form-select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid $gray-200;
+  border-radius: $radius-sm;
+  font-size: $text-base;
+  font-family: inherit;
+  background: $white;
+  color: $gray-800;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.form-input:focus,
+.form-select:focus {
+  outline: none;
+  border-color: $orange;
+  box-shadow: 0 0 0 3px rgba(239, 123, 16, 0.12);
+}
+.form-label {
+  font-size: $text-sm;
+  font-weight: 600;
+  color: $gray-600;
+  margin-bottom: 4px;
+  display: block;
+}
+
+/* Link style */
+.link-orange {
+  color: $orange;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.1s;
+}
+.link-orange:hover {
+  color: $orange-dark;
+  text-decoration: underline;
+}
+
+/* Section titles */
+.section-title {
+  font-size: $text-sm;
+  font-weight: 700;
+  color: $gray-600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 0 0 12px;
 }

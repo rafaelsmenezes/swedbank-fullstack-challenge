@@ -1,12 +1,33 @@
 version: '3.8'
 
 services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: bankdb
+      POSTGRES_USER: swedbank
+      POSTGRES_PASSWORD: swedbank123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U swedbank -d bankdb"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - swedenbank-net
+
   bank-api:
     build:
       context: ./bank-api
       dockerfile: Dockerfile
     ports:
       - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
     environment:
       - SPRING_PROFILES_ACTIVE=docker
     healthcheck:
@@ -28,6 +49,9 @@ services:
         condition: service_healthy
     networks:
       - swedenbank-net
+
+volumes:
+  postgres_data:
 
 networks:
   swedenbank-net:

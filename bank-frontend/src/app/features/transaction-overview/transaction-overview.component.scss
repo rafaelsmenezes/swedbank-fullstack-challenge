@@ -1,178 +1,163 @@
-.tx-container {
-  min-height: 100vh;
-  background-color: #f4f6f9;
-  font-family: 'Segoe UI', Arial, sans-serif;
+// Swedbank Brand vars for component
+$orange:        #EF7B10;
+$orange-dark:   #C8590A;
+$orange-light:  #FDE8D0;
+$orange-subtle: #FFF3E8;
+$brown-dark:    #512B2B;
+$gray-800:      #1A1A1A;
+$gray-600:      #4A4A4A;
+$gray-400:      #9A9A9A;
+$gray-200:      #E8E8E8;
+$gray-100:      #F5F5F5;
+$white:         #FFFFFF;
+$success:       #2E7D32;
+$success-light: #E8F5E9;
+$danger:        #C62828;
+$danger-light:  #FFEBEE;
+$bg-card:       #FFFFFF;
+$bg-page:       #FFF8F3;
+
+$text-xs:   0.75rem;
+$text-sm:   0.875rem;
+$text-base: 1rem;
+$text-lg:   1.125rem;
+$text-xl:   1.25rem;
+$text-2xl:  1.5rem;
+$text-3xl:  2rem;
+
+$radius-sm:  6px;
+$radius-md:  12px;
+$radius-lg:  16px;
+$radius-xl:  24px;
+
+$shadow-sm:  0 1px 3px rgba(0,0,0,0.08);
+$shadow-md:  0 4px 12px rgba(0,0,0,0.10);
+$shadow-lg:  0 8px 24px rgba(0,0,0,0.12);
+
+.tx-page {
+  max-width: 620px;
+  margin: 0 auto;
+  padding: 16px 24px 48px;
 }
 
-.tx-header {
-  background-color: #4a2c8f;
-  color: #fff;
-  padding: 16px 32px;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-
-  h1 {
-    margin: 0;
-    font-size: 1.4rem;
-    font-weight: 600;
-  }
+.back-bar {
+  margin-bottom: 18px;
 }
 
-.back-btn {
-  background: rgba(255, 255, 255, 0.15);
+.back-link {
+  background: none;
   border: none;
-  color: #fff;
-  padding: 8px 14px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.9rem;
-  transition: background 0.18s;
-
-  &:hover {
-    background: rgba(255, 255, 255, 0.28);
-  }
-}
-
-.tx-body {
-  max-width: 640px;
-  margin: 32px auto;
-  padding: 0 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.card {
-  background: #fff;
-  border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  padding: 24px;
-}
-
-.section-title {
-  margin: 0 0 16px;
-  font-size: 0.8rem;
+  color: $orange;
+  font-size: $text-base;
   font-weight: 600;
-  color: #888;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
+  cursor: pointer;
+}
+.back-link:hover {
+  text-decoration: underline;
 }
 
-// Hero card
-.hero-card {
-  border-left: 5px solid #ccc;
+/* Hero */
+.hero {
+  border-radius: $radius-lg;
+  padding: 28px 28px;
+  text-align: center;
+  color: $white;
+  margin-bottom: 24px;
 
-  &--credit { border-left-color: #2e7d32; }
-  &--debit  { border-left-color: #c62828; }
-
-  &__type {
-    font-size: 0.8rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: #888;
-    margin-bottom: 6px;
+  &.hero-credit {
+    background: linear-gradient(135deg, $success, #1b5e20);
   }
-
-  &__amount {
-    font-size: 2.2rem;
-    font-weight: 700;
-    color: #1a1a2e;
+  &.hero-debit {
+    background: linear-gradient(135deg, $danger, #b71c1c);
   }
 }
 
-// Detail grid
-.detail-grid {
-  display: grid;
-  grid-template-columns: 160px 1fr;
+.hero-type {
+  font-size: $text-base;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  margin-bottom: 6px;
+  opacity: 0.95;
+}
+
+.hero-amount {
+  font-size: $text-3xl;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.hero-meta {
+  font-size: $text-sm;
+  opacity: 0.9;
+}
+
+/* Details table */
+.details-card {
+  margin-bottom: 24px;
+}
+
+.detail-table {
   margin: 0;
-  row-gap: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+}
 
-  dt, dd {
-    padding: 10px 8px;
-    margin: 0;
-    font-size: 0.9rem;
-    border-top: 1px solid #f2f2f2;
+.detail-row {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  align-items: center;
+  padding: 11px 4px;
+  font-size: $text-sm;
+  border-top: 1px solid $gray-200;
+
+  &:first-child {
+    border-top: none;
   }
 
   dt {
-    font-weight: 600;
-    color: #555;
+    color: $gray-600;
+    font-weight: 500;
   }
 
   dd {
-    color: #1a1a2e;
-  }
-
-  dt:first-of-type,
-  dd:first-of-type {
-    border-top: none;
+    margin: 0;
+    color: $gray-800;
+    font-weight: 600;
   }
 }
 
-// Badge
-.badge {
+/* Alternating rows (via nth) */
+.detail-row:nth-child(even) {
+  background: $gray-100;
+  margin: 0 -4px;
+  padding-left: 8px;
+  padding-right: 8px;
+  border-radius: 4px;
+}
+
+.type-badge {
   display: inline-block;
-  padding: 3px 10px;
-  border-radius: 20px;
-  font-size: 0.78rem;
-  font-weight: 600;
-  letter-spacing: 0.05em;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: $text-xs;
+  font-weight: 700;
+  letter-spacing: 0.03em;
 
-  &--credit {
-    background: #e8f5e9;
-    color: #2e7d32;
+  &.credit {
+    background: $success-light;
+    color: $success;
   }
-
-  &--debit {
-    background: #fce4ec;
-    color: #c62828;
+  &.debit {
+    background: $danger-light;
+    color: $danger;
   }
 }
 
-// Action buttons
-.action-row {
+.export-row {
   display: flex;
-  gap: 12px;
-  justify-content: flex-end;
+  justify-content: center;
 }
 
-.btn {
-  padding: 10px 22px;
-  border-radius: 7px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  cursor: pointer;
-  border: none;
-  transition: opacity 0.18s, transform 0.15s;
-
-  &:hover:not(:disabled) {
-    opacity: 0.88;
-    transform: translateY(-1px);
-  }
-
-  &:disabled {
-    opacity: 0.55;
-    cursor: not-allowed;
-  }
-
-  &--primary {
-    background: #4a2c8f;
-    color: #fff;
-  }
-
-  &--secondary {
-    background: #ede8f8;
-    color: #4a2c8f;
-  }
-}
-
-.state-message {
-  text-align: center;
-  color: #666;
-  padding: 48px 0;
-  font-size: 1rem;
-
-  &--error { color: #c0392b; }
+.export-row .btn {
+  max-width: 320px;
 }

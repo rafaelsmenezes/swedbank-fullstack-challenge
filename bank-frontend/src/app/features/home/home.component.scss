@@ -1,99 +1,195 @@
-.home-container {
-  min-height: 100vh;
-  background-color: #f4f6f9;
-  font-family: 'Segoe UI', Arial, sans-serif;
+// Swedbank Brand vars for component
+$orange:        #EF7B10;
+$orange-dark:   #C8590A;
+$orange-light:  #FDE8D0;
+$orange-subtle: #FFF3E8;
+$brown-dark:    #512B2B;
+$gray-800:      #1A1A1A;
+$gray-600:      #4A4A4A;
+$gray-400:      #9A9A9A;
+$gray-200:      #E8E8E8;
+$gray-100:      #F5F5F5;
+$white:         #FFFFFF;
+$success:       #2E7D32;
+$success-light: #E8F5E9;
+$danger:        #C62828;
+$danger-light:  #FFEBEE;
+$bg-card:       #FFFFFF;
+$bg-page:       #FFF8F3;
+
+$text-xs:   0.75rem;
+$text-sm:   0.875rem;
+$text-base: 1rem;
+$text-lg:   1.125rem;
+$text-xl:   1.25rem;
+$text-2xl:  1.5rem;
+$text-3xl:  2rem;
+
+$radius-sm:  6px;
+$radius-md:  12px;
+$radius-lg:  16px;
+$radius-xl:  24px;
+
+$shadow-sm:  0 1px 3px rgba(0,0,0,0.08);
+$shadow-md:  0 4px 12px rgba(0,0,0,0.10);
+$shadow-lg:  0 8px 24px rgba(0,0,0,0.12);
+
+.home-page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 32px 24px 64px;
 }
 
 .home-header {
-  background-color: #4a2c8f;
-  color: #fff;
-  padding: 24px 32px;
-
-  h1 {
-    margin: 0;
-    font-size: 1.5rem;
-    font-weight: 600;
-    letter-spacing: 0.02em;
-  }
+  margin-bottom: 32px;
 }
 
-.home-body {
-  max-width: 720px;
-  margin: 32px auto;
-  padding: 0 16px;
+.greeting {
+  margin: 0 0 6px;
+  font-size: $text-3xl;
+  font-weight: 700;
+  color: $gray-800;
 }
 
-.state-message {
-  text-align: center;
-  color: #666;
-  padding: 48px 0;
-  font-size: 1rem;
-
-  &--error {
-    color: #c0392b;
-  }
-}
-
-.account-list {
-  list-style: none;
+.subtitle {
   margin: 0;
-  padding: 0;
+  font-size: $text-lg;
+  color: $gray-600;
+}
+
+.home-content {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 32px;
+}
+
+/* Quick Transfer */
+.quick-transfer {
+  max-width: 720px;
+}
+
+.qt-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.qt-icon {
+  font-size: 1.35rem;
+}
+
+.qt-title {
+  margin: 0;
+  font-size: $text-xl;
+  font-weight: 700;
+  color: $gray-800;
+}
+
+.qt-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Accounts */
+.accounts-section {
+  margin-top: 8px;
+}
+
+.accounts-title {
+  margin: 0 0 16px;
+  font-size: $text-xl;
+  font-weight: 700;
+  color: $gray-800;
+}
+
+.accounts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
 }
 
 .account-card {
-  background: #fff;
-  border-radius: 10px;
-  padding: 20px 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  background: $bg-card;
+  border-radius: $radius-lg;
+  padding: 24px;
+  box-shadow: $shadow-sm;
   cursor: pointer;
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  grid-template-rows: auto auto;
-  column-gap: 16px;
-  align-items: center;
-  transition: box-shadow 0.18s ease, transform 0.18s ease;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 
   &:hover {
-    box-shadow: 0 4px 16px rgba(74, 44, 143, 0.18);
+    box-shadow: $shadow-md;
     transform: translateY(-2px);
   }
 
   &:focus-visible {
-    outline: 2px solid #4a2c8f;
+    outline: 2px solid $orange;
     outline-offset: 2px;
   }
+}
 
-  &__currency-badge {
-    grid-row: 1 / 3;
-    background-color: #ede8f8;
-    color: #4a2c8f;
-    font-weight: 700;
-    font-size: 0.85rem;
-    border-radius: 6px;
-    padding: 6px 10px;
-    letter-spacing: 0.05em;
-    align-self: center;
-  }
+.account-card__top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
 
-  &__balance {
-    font-size: 1.35rem;
-    font-weight: 700;
-    color: #1a1a2e;
-  }
+.flag {
+  font-size: 1.35rem;
+  line-height: 1;
+}
 
-  &__meta {
-    font-size: 0.8rem;
-    color: #888;
-    margin-top: 4px;
-  }
+.currency-badge {
+  display: inline-block;
+  background: $orange-subtle;
+  color: $orange;
+  font-weight: 700;
+  font-size: $text-xs;
+  padding: 2px 9px;
+  border-radius: 999px;
+  letter-spacing: 0.03em;
+}
 
-  &__arrow {
-    grid-row: 1 / 3;
-    color: #4a2c8f;
-    font-size: 1.2rem;
-    align-self: center;
-  }
+.account-card__balance {
+  font-size: $text-3xl;
+  font-weight: 700;
+  color: $gray-800;
+  line-height: 1.1;
+  margin: 4px 0 2px;
+}
+
+.account-card__label {
+  font-size: $text-sm;
+  color: $gray-400;
+}
+
+.account-card__footer {
+  margin-top: 12px;
+}
+
+.empty-state {
+  color: $gray-400;
+  padding: 40px 0;
+  text-align: center;
+  font-size: $text-base;
 }
