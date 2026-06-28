@@ -1,59 +1,47 @@
-# BankFrontend
+# Bank Frontend — Swedbank Angular App
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.17.
+**Stack**  
+Angular 21 · TypeScript · Chart.js · jsPDF · zone.js · Nginx
 
-## Development server
-
-To start a local development server, run:
+## Running locally
 
 ```bash
+npm install
 ng serve
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+App: http://localhost:4200  
+Requires backend running on http://localhost:8080
 
-## Code scaffolding
+## Pages
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+- `/` — Home (lists all accounts with balances)
+- `/account/:id` — Account overview (balance, chart, transactions, credit/debit)
+- `/transaction/:id` — Transaction detail (fields + PDF export)
 
-```bash
-ng generate component component-name
-```
+## Key technical decisions
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+- Standalone components (no NgModules)
+- SSR disabled (`--ssr=false`)
+- Chart.js used directly (no ng2-charts — version conflict with Angular 21)
+- IntersectionObserver for infinite scroll (no external library)
+- `provideHttpClient()` without `withFetch()` (required for zone.js compatibility)
+- zone.js installed manually (Angular 21 defaults to zoneless)
+- Signals for all reactive state
+- `inject()` instead of constructor injection
 
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
-
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+## Build for production
 
 ```bash
-ng test
+npm run build
+# Output: dist/bank-frontend/browser/
 ```
 
-## Running end-to-end tests
+## Docker
 
-For end-to-end (e2e) testing, run:
+Served via nginx with:
 
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+- SPA routing fallback (`try_files` → `index.html`)
+- `/api/**` proxied to `bank-api:8080`
+- Long-term caching for hashed assets
+- No caching for `index.html`

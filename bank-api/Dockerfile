@@ -17,6 +17,9 @@ RUN ./gradlew --no-daemon bootJar
 # Stage 2: Runtime
 FROM eclipse-temurin:21-jre-alpine
 
+# Install curl for healthchecks (required by docker-compose)
+RUN apk add --no-cache curl
+
 # Create non-root user for security
 RUN addgroup -S spring && adduser -S spring -G spring
 USER spring:spring
