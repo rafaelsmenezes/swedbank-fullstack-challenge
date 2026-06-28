@@ -1,0 +1,132 @@
+<div class="account-container">
+  <header class="account-header">
+    <button class="back-btn" (click)="goBack()">← Back</button>
+    <h1>Account Overview</h1>
+  </header>
+
+  @if (loading()) {
+  <div class="spinner-wrapper">
+    <div class="spinner"></div>
+    <p>Loading account…</p>
+  </div>
+  }
+
+  @if (error()) {
+  <div class="state-message state-message--error">{{ error() }}</div>
+  }
+
+  @if (!loading() && !error() && account()) {
+  <div class="account-body">
+
+    <!-- Saldo da conta -->
+    <section class="account-info card">
+      <div class="account-info__badge">{{ account()!.currency }}</div>
+      <div class="account-info__balance">
+        {{ account()!.balance | currencyFormat: account()!.currency }}
+      </div>
+      <div class="account-info__meta">Account #{{ account()!.id }}</div>
+    </section>
+
+    <!-- Gráfico Chart.js -->
+    @if (transactions().length > 0) {
+    <section class="chart-section card">
+      <h2 class="section-title">Balance Timeline</h2>
+      <div class="chart-wrapper">
+        <canvas #chartCanvas></canvas>
+      </div>
+    </section>
+    }
+
+    <!-- Operações de Credit / Debit -->
+    <section class="operations card">
+      <h2 class="section-title">Operations</h2>
+
+      @if (operationSuccess()) {
+      <div class="alert alert--success">{{ operationSuccess() }}</div>
+      }
+      @if (operationError()) {
+      <div class="alert alert--error">{{ operationError() }}</div>
+      }
+
+      <div class="forms-row">
+
+        <!-- Credit -->
+        <div class="form-card">
+          <h4 class="form-card__title">Credit</h4>
+
+          <input type="number" [(ngModel)]="creditAmount" placeholder="Amount" min="0.01" class="form-input" />
+
+          <select [(ngModel)]="creditFromCurrency" class="form-input">
+            @for (c of currencies; track c) {
+            <option [value]="c">{{ c }}</option>
+            }
+          </select>
+
+          <input type="text" [(ngModel)]="creditDescription" placeholder="Description (optional)" class="form-input" />
+
+          <button class="form-btn form-btn--credit" (click)="credit()" [disabled]="operationLoading()">
+            {{ operationLoading() ? 'Processing…' : '+ Credit' }}
+          </button>
+        </div>
+
+        <!-- Debit -->
+        <div class="form-card">
+          <h4 class="form-card__title">Debit ({{ account()?.currency }})</h4>
+
+          <input type="number" [(ngModel)]="debitAmount" placeholder="Amount" min="0.01" class="form-input" />
+
+          <input type="text" [(ngModel)]="debitDescription" placeholder="Description (optional)" class="form-input" />
+
+          <button class="form-btn form-btn--debit" (click)="debit()" [disabled]="operationLoading()">
+            {{ operationLoading() ? 'Processing…' : '- Debit' }}
+          </button>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Histórico de transações -->
+    <section class="transactions-section card">
+      <h2 class="section-title">Transaction History</h2>
+
+      @if (transactions().length === 0) {
+      <div class="state-message">No transactions found.</div>
+      } @else {
+      <ul class="transaction-list">
+        @for (tx of transactions(); track tx.id) {
+        <li class="transaction-item" (click)="goToTransaction(tx.id)" role="button" tabindex="0"
+          (keydown.enter)="goToTransaction(tx.id)">
+          <div class="transaction-item__icon" [class.credit]="tx.type === 'CREDIT'" [class.debit]="tx.type === 'DEBIT'">
+            {{ tx.type === 'CREDIT' ? '↑' : '↓' }}
+          </div>
+          <div class="transaction-item__info">
+            <div class="transaction-item__desc">{{ tx.description || '—' }}</div>
+            <div class="transaction-item__date">{{ tx.createdAt | date: 'medium' }}</div>
+          </div>
+          <div class="transaction-item__amount" [class.credit]="tx.type === 'CREDIT'"
+            [class.debit]="tx.type === 'DEBIT'">
+            {{ tx.type === 'CREDIT' ? '+' : '-' }}{{ tx.amount | number: '1.2-2' }}
+          </div>
+        </li>
+        }
+      </ul>
+      }
+
+      @if (loadingMore()) {
+      <div class="loading-more">
+        <div class="spinner spinner--sm"></div>
+      </div>
+      }
+
+      @if (!isLastPage()) {
+      <div #sentinel class="sentinel"></div>
+      }
+
+      @if (isLastPage() && transactions().length > 0) {
+      <div class="state-message state-message--end">All transactions loaded</div>
+      }
+    </section>
+
+  </div>
+  }
+</div>

@@ -1,0 +1,178 @@
+.tx-container {
+  min-height: 100vh;
+  background-color: #f4f6f9;
+  font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+.tx-header {
+  background-color: #4a2c8f;
+  color: #fff;
+  padding: 16px 32px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+
+  h1 {
+    margin: 0;
+    font-size: 1.4rem;
+    font-weight: 600;
+  }
+}
+
+.back-btn {
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  color: #fff;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background 0.18s;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.28);
+  }
+}
+
+.tx-body {
+  max-width: 640px;
+  margin: 32px auto;
+  padding: 0 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.card {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  padding: 24px;
+}
+
+.section-title {
+  margin: 0 0 16px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+// Hero card
+.hero-card {
+  border-left: 5px solid #ccc;
+
+  &--credit { border-left-color: #2e7d32; }
+  &--debit  { border-left-color: #c62828; }
+
+  &__type {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #888;
+    margin-bottom: 6px;
+  }
+
+  &__amount {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: #1a1a2e;
+  }
+}
+
+// Detail grid
+.detail-grid {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  margin: 0;
+  row-gap: 0;
+
+  dt, dd {
+    padding: 10px 8px;
+    margin: 0;
+    font-size: 0.9rem;
+    border-top: 1px solid #f2f2f2;
+  }
+
+  dt {
+    font-weight: 600;
+    color: #555;
+  }
+
+  dd {
+    color: #1a1a2e;
+  }
+
+  dt:first-of-type,
+  dd:first-of-type {
+    border-top: none;
+  }
+}
+
+// Badge
+.badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+
+  &--credit {
+    background: #e8f5e9;
+    color: #2e7d32;
+  }
+
+  &--debit {
+    background: #fce4ec;
+    color: #c62828;
+  }
+}
+
+// Action buttons
+.action-row {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.btn {
+  padding: 10px 22px;
+  border-radius: 7px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: opacity 0.18s, transform 0.15s;
+
+  &:hover:not(:disabled) {
+    opacity: 0.88;
+    transform: translateY(-1px);
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  &--primary {
+    background: #4a2c8f;
+    color: #fff;
+  }
+
+  &--secondary {
+    background: #ede8f8;
+    color: #4a2c8f;
+  }
+}
+
+.state-message {
+  text-align: center;
+  color: #666;
+  padding: 48px 0;
+  font-size: 1rem;
+
+  &--error { color: #c0392b; }
+}

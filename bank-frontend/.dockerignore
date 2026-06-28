@@ -1,0 +1,26 @@
+# Dependencies
+node_modules
+
+# Build output (rebuilt inside container)
+dist
+
+# Angular cache
+.angular
+
+# Git
+.git
+.gitignore
+
+# Docs and misc
+*.md
+.env*
+*.log
+coverage
+tmp
+out-tsc
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo

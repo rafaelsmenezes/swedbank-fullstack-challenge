@@ -1,0 +1,49 @@
+<div class="home-container">
+  <header class="home-header">
+    <h1>My Accounts</h1>
+  </header>
+
+  <div class="home-body">
+    @if (loading()) {
+      <div class="skeleton-grid">
+        @for (i of [1,2,3]; track i) {
+          <div class="skeleton-card">
+            <div class="skeleton-badge"></div>
+            <div class="skeleton-line wide"></div>
+            <div class="skeleton-line narrow"></div>
+          </div>
+        }
+      </div>
+    }
+
+    @if (error()) {
+      <div class="error-banner">
+        <span class="error-icon">⚠️</span>
+        <span>{{ error() }}</span>
+        <button (click)="loadAccounts()">Retry</button>
+      </div>
+    }
+
+    @if (!loading() && !error()) {
+      @if (accounts().length === 0) {
+        <div class="state-message">No accounts found.</div>
+      } @else {
+        <ul class="account-list">
+          @for (account of accounts(); track account.id) {
+            <li class="account-card" (click)="goToAccount(account.id)" role="button" tabindex="0"
+                (keydown.enter)="goToAccount(account.id)">
+              <div class="account-card__currency-badge">{{ account.currency }}</div>
+              <div class="account-card__balance">
+                {{ account.balance | currencyFormat: account.currency }}
+              </div>
+              <div class="account-card__meta">
+                Account #{{ account.id }} · Created {{ account.createdAt | date: 'mediumDate' }}
+              </div>
+              <div class="account-card__arrow">→</div>
+            </li>
+          }
+        </ul>
+      }
+    }
+  </div>
+</div>

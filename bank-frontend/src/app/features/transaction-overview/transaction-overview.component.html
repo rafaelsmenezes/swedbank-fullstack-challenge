@@ -1,0 +1,90 @@
+<div class="tx-container">
+  <header class="tx-header">
+    <button class="back-btn" (click)="goBack()">← Back</button>
+    <h1>Transaction Detail</h1>
+  </header>
+
+  @if (loading()) {
+  <div class="spinner-wrapper">
+    <div class="spinner"></div>
+    <p>Loading…</p>
+  </div>
+  }
+
+  @if (error()) {
+  <div class="state-message state-message--error">{{ error() }}</div>
+  }
+
+  @if (!loading() && !error() && transaction()) {
+  <div class="tx-body">
+
+    <!-- Hero amount -->
+    <section class="hero-card card" [class.hero-card--credit]="transaction()!.type === 'CREDIT'"
+      [class.hero-card--debit]="transaction()!.type === 'DEBIT'">
+      <div class="hero-card__type">{{ transaction()!.type }}</div>
+      <div class="hero-card__amount">
+        {{ transaction()!.type === 'CREDIT' ? '+' : '-' }}
+        @if (account()) {
+        {{ transaction()!.amount | currencyFormat: account()!.currency }}
+        } @else {
+        {{ transaction()!.amount | number: '1.2-2' }}
+        }
+      </div>
+    </section>
+
+    <!-- Detail table -->
+    <section class="detail-card card">
+      <h2 class="section-title">Details</h2>
+
+      <dl class="detail-grid">
+        <dt>Transaction ID</dt>
+        <dd>#{{ transaction()!.id }}</dd>
+
+        <dt>Account ID</dt>
+        <dd>#{{ transaction()!.accountId }}</dd>
+
+        <dt>Type</dt>
+        <dd>
+          <span class="badge" [class.badge--credit]="transaction()!.type === 'CREDIT'"
+            [class.badge--debit]="transaction()!.type === 'DEBIT'">
+            {{ transaction()!.type }}
+          </span>
+        </dd>
+
+        <dt>Amount</dt>
+        <dd>
+          @if (account()) {
+          {{ transaction()!.amount | currencyFormat: account()!.currency }}
+          } @else {
+          {{ transaction()!.amount | number: '1.2-2' }}
+          }
+        </dd>
+
+        <dt>Balance After</dt>
+        <dd>
+          @if (account()) {
+          {{ transaction()!.balanceAfter | currencyFormat: account()!.currency }}
+          } @else {
+          {{ transaction()!.balanceAfter | number: '1.2-2' }}
+          }
+        </dd>
+
+        <dt>Description</dt>
+        <dd>{{ transaction()!.description || '—' }}</dd>
+
+        <dt>Date</dt>
+        <dd>{{ transaction()!.createdAt | date: 'medium' }}</dd>
+      </dl>
+    </section>
+
+    <!-- Actions -->
+    <div class="action-row">
+      <button class="btn btn--secondary" (click)="goBack()">← Back to Account</button>
+      <button class="btn btn--primary" (click)="exportPdf()" [disabled]="exporting()">
+        {{ exporting() ? 'Generating…' : '⬇ Export PDF' }}
+      </button>
+    </div>
+
+  </div>
+  }
+</div>
