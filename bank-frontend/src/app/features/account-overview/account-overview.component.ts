@@ -226,9 +226,6 @@ const FLAG_MAP: Record<Currency, string> = {
           }
 
           @if (!isLastPage()) {
-            <button (click)="loadMore()" [disabled]="loadingMore()">
-              {{ loadingMore() ? 'Loading…' : 'Load more' }}
-            </button>
             <div #sentinel class="sentinel"></div>
           }
 
@@ -302,7 +299,8 @@ export class AccountOverviewComponent implements OnInit, OnDestroy, AfterViewIni
   }
 
   private loadTransactions(): void {
-    this.accountService.getTransactions(this.accountId, this.currentPage, this.pageSize).subscribe({
+    this.currentPage = 0;
+    this.accountService.getTransactions(this.accountId, 0, 20).subscribe({
       next: (page) => {
         this.transactions.update((prev) => [...prev, ...page.content]);
         this.isLastPage.set(page.last);

@@ -98,6 +98,12 @@ $shadow-lg:  0 8px 24px rgba(0,0,0,0.12);
   gap: 8px;
 }
 
+.form-helper {
+  font-size: 11px;
+  color: $gray-600;
+  margin-top: 2px;
+}
+
 .form-group {
   display: flex;
   flex-direction: column;

@@ -89,7 +89,7 @@ const FLAG_MAP: Record<Currency, string> = {
             </div>
 
             <div class="form-group">
-              <label class="form-label">From currency (auto-converted)</label>
+              <label class="form-label">From currency</label>
               <select
                 class="form-select"
                 [ngModel]="transferFromCurrency()"
@@ -100,6 +100,7 @@ const FLAG_MAP: Record<Currency, string> = {
                   <option [value]="ccy">{{ ccy }}</option>
                 }
               </select>
+              <small class="form-helper">Automatically converted to account currency</small>
             </div>
 
             <div class="form-group">
@@ -110,7 +111,7 @@ const FLAG_MAP: Record<Currency, string> = {
                 [ngModel]="transferDescription()"
                 (ngModelChange)="transferDescription.set($event)"
                 name="description"
-                placeholder="Optional description"
+                placeholder="Optional"
               />
             </div>
 
