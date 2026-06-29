@@ -118,3 +118,58 @@ swedbank-fullstack-challenge/
 │   └── nginx.conf               # Production nginx config
 └── docker-compose.yml           # Orchestrates both services
 ```
+
+## Future Improvements
+
+This section documents known gaps and intentional trade-offs made during the rapid development of this technical challenge.
+
+### Security
+- [ ] Spring Security + JWT / OAuth2 authentication — currently any client can access any account by guessing IDs; real banking requires authenticated sessions with ownership validation.
+- [ ] Account ownership enforcement — add checks so users can only access their own accounts (service + controller layer).
+- [ ] Rate limiting on write endpoints (credit/debit) — protects against abuse and accidental double-spends.
+- [ ] Secrets management — database credentials are currently in plain properties and docker-compose.
+
+### Concurrency & Data Integrity
+- [ ] Pessimistic or optimistic locking on Account balance updates — the current read-modify-write pattern in `AccountService` is vulnerable to lost updates under concurrent credit/debit.
+- [ ] Idempotency keys for credit and debit operations — prevents duplicate side effects on retries.
+- [ ] Move external logging outside the `@Transactional` boundary — side effects inside transactions are fragile.
+
+### Performance & Scalability
+- [ ] Redis (or simple cache) for exchange rates — rates are hardcoded in a static map; dynamic rates would require a cache layer.
+- [ ] Proper database indexing strategy — especially on `transactions.account_id` + `created_at`.
+- [ ] Virtualized or cursor-based loading for very large transaction histories on the frontend.
+
+### Observability
+- [ ] Structured logging with correlation IDs across the stack (frontend → API → external log).
+- [ ] Metrics (Micrometer + Prometheus) for critical paths: credit/debit success rate, conversion latency, external log health.
+- [ ] Better health indicators and readiness probes suitable for Railway / Kubernetes.
+
+### Testing
+- [ ] Concurrency / load tests specifically for the debit race condition.
+- [ ] Contract tests between frontend and backend.
+- [ ] End-to-end tests (Playwright/Cypress) covering chart rendering, PDF export, and infinite scroll.
+- [ ] Property-based testing for the currency conversion logic.
+
+### Architecture
+- [ ] Move balance mutation logic into the `Account` domain entity (`account.debit(...)`) instead of the service layer.
+- [ ] Introduce a proper `Money` value object instead of raw `BigDecimal + String`.
+- [ ] Replace `create-drop` + imperative seed with Flyway/Liquibase migrations (critical once we stop using H2 locally).
+- [ ] Consider introducing an Application Service / Use Case layer to keep controllers thin.
+
+### Infrastructure & Deployment
+- [ ] Remove `ddl-auto=create-drop` from the `docker` profile — data loss on every container restart.
+- [ ] Make the Nginx backend target configurable (build arg or runtime env) instead of hardcoding the Railway internal hostname.
+- [ ] Add container vulnerability scanning and SBOM generation in CI.
+- [ ] Separate production profile with `validate` (or `none`) + proper connection pool configuration.
+
+### Frontend
+- [ ] Extract the very large inline templates from component `.ts` files.
+- [ ] Replace `setTimeout` hacks for Chart.js with proper lifecycle management and `ResizeObserver`.
+- [ ] Add subscription cleanup using `takeUntilDestroyed`.
+- [ ] Global HTTP error handling + toast service instead of scattered banners.
+- [ ] Add frontend tests (component + e2e).
+
+See also the more detailed, technology-specific lists:
+- [Bank API Future Improvements](bank-api/README.md#future-improvements)
+- [Bank Frontend Future Improvements](bank-frontend/README.md#future-improvements)
+```

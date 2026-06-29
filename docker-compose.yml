@@ -42,8 +42,14 @@ services:
     build:
       context: ./bank-frontend
       dockerfile: Dockerfile
+      # For local development we override the config at runtime via volume
+      # so we can use the default nginx.conf in the image (or any)
     ports:
       - "80:80"
+    volumes:
+      # Mount local nginx config for development
+      # This overrides the baked-in config without rebuilding the image
+      - ./bank-frontend/nginx.local.conf:/etc/nginx/conf.d/default.conf:ro
     depends_on:
       bank-api:
         condition: service_healthy
