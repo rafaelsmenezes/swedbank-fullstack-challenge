@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, OnDestroy, signal, ElementRef, ViewChild } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, AfterViewInit, signal, ElementRef, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -66,8 +66,7 @@ const FLAG_MAP: Record<Currency, string> = {
             <div class="flag-large">{{ getFlag(account()!.currency) }}</div>
             <div class="info-currency">{{ account()!.currency }} Account</div>
             <div class="info-balance">
-              <!-- BUG FIX: use dedicated balance signal so updating balance does not re-render the entire account-dependent subtree (including form inputs) (Bug 2) -->
-              {{ balance() | currencyFormat: account()!.currency }}
+              {{ account()!.balance | currencyFormat: account()!.currency }}
             </div>
             <div class="info-meta">
               Account #{{ account()!.id }} · Since {{ getSinceYear(account()!.createdAt) }}
@@ -93,7 +92,7 @@ const FLAG_MAP: Record<Currency, string> = {
                   (ngModelChange)="creditAmount.set($event)"
                   name="creditAmount"
                 />
-                <select class="form-select qa-input" [(ngModel)]="creditFromCurrency" name="creditFromCurrency">
+                <select class="form-select qa-input" [ngModel]="creditFromCurrency()" (ngModelChange)="creditFromCurrency.set($event)" name="creditFromCurrency">
                   @for (c of currencies; track c) {
                     <option [value]="c">{{ c }}</option>
                   }
@@ -110,7 +109,7 @@ const FLAG_MAP: Record<Currency, string> = {
               <button
                 class="btn btn-green btn-full qa-btn"
                 (click)="credit()"
-                [disabled]="operationLoading() || (creditAmount() ?? 0) <= 0"
+                [disabled]="operationLoading() || creditAmount() <= 0"
               >
                 {{ operationLoading() ? 'Processing…' : '+ Credit →' }}
               </button>
@@ -147,7 +146,7 @@ const FLAG_MAP: Record<Currency, string> = {
               <button
                 class="btn btn-red btn-full qa-btn"
                 (click)="debit()"
-                [disabled]="operationLoading() || (debitAmount() ?? 0) <= 0"
+                [disabled]="operationLoading() || debitAmount() <= 0"
               >
                 {{ operationLoading() ? 'Processing…' : '- Debit →' }}
               </button>
@@ -165,8 +164,8 @@ const FLAG_MAP: Record<Currency, string> = {
         <!-- Chart -->
         <section class="chart-section card">
           <h2 class="section-title">Balance Timeline</h2>
-          <!-- BUG FIX: always render canvas in DOM (use [hidden] instead of @if) so @ViewChild is available immediately after initial render; build only when visible data present (Bug 1) -->
-          <div class="chart-wrapper" [hidden]="transactions().length === 0">
+          <!-- BUG FIX: always render canvas (no @if), use style.display to hide; initial build in ngAfterViewInit (Bug 1) -->
+          <div class="chart-wrapper" [style.display]="transactions().length === 0 ? 'none' : 'block'">
             <canvas #chartCanvas></canvas>
           </div>
           @if (transactions().length === 0) {
@@ -233,7 +232,7 @@ const FLAG_MAP: Record<Currency, string> = {
   `,
   styleUrl: './account-overview.component.scss',
 })
-export class AccountOverviewComponent implements OnInit, OnDestroy {
+export class AccountOverviewComponent implements OnInit, OnDestroy, AfterViewInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private accountService = inject(AccountService);
@@ -242,8 +241,6 @@ export class AccountOverviewComponent implements OnInit, OnDestroy {
   @ViewChild('sentinel') sentinel!: ElementRef<HTMLDivElement>;
 
   account = signal<Account | null>(null);
-  // BUG FIX: separate balance signal so only balance display updates on refresh after ops, preventing re-renders of form inputs (Bug 2)
-  balance = signal(0);
   transactions = signal<Transaction[]>([]);
   loading = signal(true);
   loadingMore = signal(false);
@@ -262,12 +259,11 @@ export class AccountOverviewComponent implements OnInit, OnDestroy {
 
   currencies: Currency[] = ['EUR', 'USD', 'SEK', 'GBP', 'VND'];
 
-  // BUG FIX: convert form fields to signals to ensure updates trigger change detection reliably after async operations (Bug 3)
-  creditAmount = signal<number | null>(null);
-  creditFromCurrency: Currency = 'EUR';
+  // BUG FIX: convert form fields to signals (Bug 3)
+  creditAmount = signal(0);
+  creditFromCurrency = signal<Currency>('EUR');
   creditDescription = signal('');
-
-  debitAmount = signal<number | null>(null);
+  debitAmount = signal(0);
   debitDescription = signal('');
 
   ngOnInit(): void {
@@ -275,7 +271,6 @@ export class AccountOverviewComponent implements OnInit, OnDestroy {
     this.accountService.getAccount(this.accountId).subscribe({
       next: (account) => {
         this.account.set(account);
-        this.balance.set(account.balance);
         this.loadTransactions();
       },
       error: () => {
@@ -290,6 +285,11 @@ export class AccountOverviewComponent implements OnInit, OnDestroy {
     this.chart?.destroy();
   }
 
+  ngAfterViewInit(): void {
+    // BUG FIX: buildChart only here once when canvas is in DOM (Bug 1)
+    this.buildChart();
+  }
+
   private loadTransactions(): void {
     this.accountService.getTransactions(this.accountId, this.currentPage, this.pageSize).subscribe({
       next: (page) => {
@@ -297,12 +297,8 @@ export class AccountOverviewComponent implements OnInit, OnDestroy {
         this.isLastPage.set(page.last);
         this.loading.set(false);
         setTimeout(() => {
-          // BUG FIX: after tx load, use updateChart (which builds only if needed) once canvas guaranteed in DOM (Bug 1)
-          if (this.chart) {
-            this.updateChart();
-          } else {
-            this.buildChart();
-          }
+          // BUG FIX: call updateChart() (not buildChart) after transactions load (Bug 1)
+          this.updateChart();
           if (!this.isLastPage()) {
             this.setupObserver();
           }
@@ -336,15 +332,15 @@ export class AccountOverviewComponent implements OnInit, OnDestroy {
   }
 
   credit(): void {
-    if ((this.creditAmount() ?? 0) <= 0) return;
+    if (this.creditAmount() <= 0) return;
 
     this.operationLoading.set(true);
     this.operationError.set(null);
     this.operationSuccess.set(null);
 
     const request: CreditRequest = {
-      amount: this.creditAmount()!,
-      fromCurrency: this.creditFromCurrency,
+      amount: this.creditAmount(),
+      fromCurrency: this.creditFromCurrency(),
       ...(this.creditDescription().trim() && { description: this.creditDescription().trim() }),
     };
 
@@ -354,14 +350,15 @@ export class AccountOverviewComponent implements OnInit, OnDestroy {
         this.operationSuccess.set('Credit applied successfully.');
         setTimeout(() => this.operationSuccess.set(null), 3000);
 
-        // BUG FIX: update only balance signal instead of reloading full account (avoids re-render flicker in inputs) (Bug 2)
-        this.balance.set(tx.balanceAfter);
+        // BUG FIX: manually update only the balance using account.update instead of getAccount call (Bug 2)
+        this.account.update(acc => acc ? {...acc, balance: tx.balanceAfter} : acc);
 
         this.transactions.update((prev) => [tx, ...prev]);
         this.updateChart();
 
-        this.creditAmount.set(null);
-        this.creditFromCurrency = 'EUR';
+        // BUG FIX: reset using .set() on signals (Bug 3)
+        this.creditAmount.set(0);
+        this.creditFromCurrency.set('EUR');
         this.creditDescription.set('');
       },
       error: (err) => {
@@ -372,14 +369,14 @@ export class AccountOverviewComponent implements OnInit, OnDestroy {
   }
 
   debit(): void {
-    if ((this.debitAmount() ?? 0) <= 0 || !this.account()) return;
+    if (this.debitAmount() <= 0 || !this.account()) return;
 
     this.operationLoading.set(true);
     this.operationError.set(null);
     this.operationSuccess.set(null);
 
     const request: DebitRequest = {
-      amount: this.debitAmount()!,
+      amount: this.debitAmount(),
       currency: this.account()!.currency,
       ...(this.debitDescription().trim() && { description: this.debitDescription().trim() }),
     };
@@ -390,13 +387,14 @@ export class AccountOverviewComponent implements OnInit, OnDestroy {
         this.operationSuccess.set('Debit applied successfully.');
         setTimeout(() => this.operationSuccess.set(null), 3000);
 
-        // BUG FIX: update only balance signal instead of reloading full account (avoids re-render flicker in inputs) (Bug 2)
-        this.balance.set(tx.balanceAfter);
+        // BUG FIX: manually update only the balance using account.update instead of getAccount call (Bug 2)
+        this.account.update(acc => acc ? {...acc, balance: tx.balanceAfter} : acc);
 
         this.transactions.update((prev) => [tx, ...prev]);
         this.updateChart();
 
-        this.debitAmount.set(null);
+        // BUG FIX: reset using .set() on signals (Bug 3)
+        this.debitAmount.set(0);
         this.debitDescription.set('');
       },
       error: (err) => {
@@ -422,7 +420,8 @@ export class AccountOverviewComponent implements OnInit, OnDestroy {
   }
 
   private buildChart(): void {
-    if (!this.chartCanvas?.nativeElement || this.transactions().length === 0) return;
+    // BUG FIX: always build if canvas available (called only from ngAfterViewInit) (Bug 1)
+    if (!this.chartCanvas?.nativeElement) return;
     if (this.chart) {
       this.chart.destroy();
       this.chart = null;
@@ -470,10 +469,8 @@ export class AccountOverviewComponent implements OnInit, OnDestroy {
   }
 
   private updateChart(): void {
-    if (!this.chart) {
-      this.buildChart();
-      return;
-    }
+    // BUG FIX: only update, build happens only in ngAfterViewInit (Bug 1)
+    if (!this.chart) return;
     const { labels, data } = this.getChartData();
     this.chart.data.labels = labels;
     this.chart.data.datasets[0].data = data;
@@ -499,7 +496,6 @@ export class AccountOverviewComponent implements OnInit, OnDestroy {
     this.accountService.getAccount(this.accountId).subscribe({
       next: (account) => {
         this.account.set(account);
-        this.balance.set(account.balance);
         this.transactions.set([]);
         this.currentPage = 0;
         this.loadTransactions();

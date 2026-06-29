@@ -59,7 +59,8 @@ const FLAG_MAP: Record<Currency, string> = {
                 <label class="form-label">To account</label>
                 <select
                   class="form-select"
-                  [(ngModel)]="form.toAccountId"
+                  [ngModel]="transferToAccountId()"
+                  (ngModelChange)="transferToAccountId.set($event)"
                   name="toAccountId"
                   required
                 >
@@ -77,7 +78,8 @@ const FLAG_MAP: Record<Currency, string> = {
                 <input
                   type="number"
                   class="form-input"
-                  [(ngModel)]="form.amount"
+                  [ngModel]="transferAmount()"
+                  (ngModelChange)="transferAmount.set($event)"
                   name="amount"
                   placeholder="0.00"
                   min="0.01"
@@ -92,7 +94,8 @@ const FLAG_MAP: Record<Currency, string> = {
                 <label class="form-label">From currency</label>
                 <select
                   class="form-select"
-                  [(ngModel)]="form.fromCurrency"
+                  [ngModel]="transferFromCurrency()"
+                  (ngModelChange)="transferFromCurrency.set($event)"
                   name="fromCurrency"
                 >
                   @for (ccy of currencies; track ccy) {
@@ -106,7 +109,8 @@ const FLAG_MAP: Record<Currency, string> = {
                 <input
                   type="text"
                   class="form-input"
-                  [(ngModel)]="form.description"
+                  [ngModel]="transferDescription()"
+                  (ngModelChange)="transferDescription.set($event)"
                   name="description"
                   placeholder="e.g. Rent payment"
                 />
@@ -195,12 +199,11 @@ export class HomeComponent implements OnInit {
 
   currencies: Currency[] = ['EUR', 'USD', 'SEK', 'GBP', 'VND'];
 
-  form: QuickTransferForm = {
-    toAccountId: null,
-    amount: null,
-    fromCurrency: 'EUR',
-    description: '',
-  };
+  // BUG FIX: convert quick transfer form fields to signals (same as Bug 3 in account overview)
+  transferToAccountId = signal<number | null>(null);
+  transferAmount = signal(0);
+  transferFromCurrency = signal<Currency>('EUR');
+  transferDescription = signal('');
 
   ngOnInit(): void {
     this.loadAccounts();
@@ -214,8 +217,8 @@ export class HomeComponent implements OnInit {
         this.accounts.set(data);
         this.loading.set(false);
         // Reset form account selection if accounts changed
-        if (this.form.toAccountId && !data.some(a => a.id === this.form.toAccountId)) {
-          this.form.toAccountId = null;
+        if (this.transferToAccountId() && !data.some(a => a.id === this.transferToAccountId())) {
+          this.transferToAccountId.set(null);
         }
       },
       error: (err) => {
@@ -231,14 +234,14 @@ export class HomeComponent implements OnInit {
   }
 
   isTransferValid(): boolean {
-    return !!this.form.toAccountId && !!this.form.amount && this.form.amount > 0;
+    return !!this.transferToAccountId() && this.transferAmount() > 0;
   }
 
   submitTransfer(): void {
     if (!this.isTransferValid() || this.transferLoading()) return;
 
-    const accountId = this.form.toAccountId!;
-    const amount = this.form.amount!;
+    const accountId = this.transferToAccountId()!;
+    const amount = this.transferAmount();
 
     this.transferLoading.set(true);
     this.transferError.set(null);
@@ -246,26 +249,29 @@ export class HomeComponent implements OnInit {
 
     const request: CreditRequest = {
       amount,
-      fromCurrency: this.form.fromCurrency,
-      ...(this.form.description.trim() && { description: this.form.description.trim() }),
+      fromCurrency: this.transferFromCurrency(),
+      ...(this.transferDescription().trim() && { description: this.transferDescription().trim() }),
     };
 
     this.accountService.credit(accountId, request).subscribe({
       next: (tx) => {
         this.transferLoading.set(false);
         const newBalance = tx.balanceAfter;
-        const currency = this.getAccountCurrency(accountId) || this.form.fromCurrency;
+        const currency = this.getAccountCurrency(accountId) || this.transferFromCurrency();
 
         this.transferSuccess.set(
           `Transfer successful! New balance: ${this.formatAmount(newBalance, currency)}`
         );
 
-        // Reload accounts to reflect balances
-        this.loadAccounts();
+        // BUG FIX: update specific account balance in signal instead of full reload
+        this.accounts.update(list => list.map(a => 
+          a.id === accountId ? {...a, balance: tx.balanceAfter} : a
+        ));
 
-        // Clear form partially
-        this.form.amount = null;
-        this.form.description = '';
+        // BUG FIX: reset using .set() (Bug fix for home quick transfer)
+        this.transferAmount.set(0);
+        this.transferDescription.set('');
+        this.transferToAccountId.set(null);
 
         // Auto dismiss after 4s
         setTimeout(() => {
