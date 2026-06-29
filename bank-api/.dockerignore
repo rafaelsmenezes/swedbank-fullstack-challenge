@@ -2,6 +2,9 @@
 build/
 .gradle/
 
+# Ensure Gradle wrapper jar is never excluded from Docker context (for Railway)
+!gradle/wrapper/gradle-wrapper.jar
+
 # Git
 .git/
 .gitignore

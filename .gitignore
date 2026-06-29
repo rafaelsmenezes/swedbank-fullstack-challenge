@@ -9,17 +9,16 @@
 # Gradle
 .gradle/
 build/
-!**/gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
 
-# Spring Boot
+# Spring Boot artifacts (generated — do not commit)
 HELP.md
 *.jar
 *.war
 *.ear
 
-# Ensure Gradle wrapper jar is never ignored (binary bootstrap file, must be committed)
+# Ensure Gradle wrapper jar is never ignored
 !**/gradle/wrapper/gradle-wrapper.jar
 
 # Logs
