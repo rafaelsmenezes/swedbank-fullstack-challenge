@@ -213,6 +213,12 @@ const FLAG_MAP: Record<Currency, string> = {
             }
           </ul>
 
+          @if (transactions().length > 0) {
+            <div>
+              Showing {{ transactions().length }} of {{ totalElements() }} transactions
+            </div>
+          }
+
           @if (loadingMore()) {
             <div class="loading-more">
               <div class="spinner spinner--sm"></div>
@@ -220,6 +226,9 @@ const FLAG_MAP: Record<Currency, string> = {
           }
 
           @if (!isLastPage()) {
+            <button (click)="loadMore()" [disabled]="loadingMore()">
+              {{ loadingMore() ? 'Loading…' : 'Load more' }}
+            </button>
             <div #sentinel class="sentinel"></div>
           }
 
@@ -246,16 +255,18 @@ export class AccountOverviewComponent implements OnInit, OnDestroy, AfterViewIni
   loadingMore = signal(false);
   error = signal<string | null>(null);
   isLastPage = signal(false);
+  totalElements = signal(0);
 
   operationLoading = signal(false);
   operationError = signal<string | null>(null);
   operationSuccess = signal<string | null>(null);
 
   private currentPage = 0;
-  private readonly pageSize = 100; // increased so chart gets full history on initial load (25 tx in seed)
+  private readonly pageSize = 20; // lazy loading with reasonable page size for pagination
   private observer: IntersectionObserver | null = null;
   private chart: Chart | null = null;
   private accountId = 0;
+  private observerInitialized = false;
 
   currencies: Currency[] = ['EUR', 'USD', 'SEK', 'GBP', 'VND'];
 
@@ -295,6 +306,7 @@ export class AccountOverviewComponent implements OnInit, OnDestroy, AfterViewIni
       next: (page) => {
         this.transactions.update((prev) => [...prev, ...page.content]);
         this.isLastPage.set(page.last);
+        this.totalElements.set(page.totalElements);
         this.loading.set(false);
         setTimeout(() => {
           // Build (or rebuild) the chart now that data + canvas are ready.
@@ -320,6 +332,7 @@ export class AccountOverviewComponent implements OnInit, OnDestroy, AfterViewIni
       next: (page) => {
         this.transactions.update((prev) => [...prev, ...page.content]);
         this.isLastPage.set(page.last);
+        this.totalElements.set(page.totalElements);
         this.loadingMore.set(false);
         if (this.isLastPage()) {
           this.observer?.disconnect();
@@ -355,6 +368,7 @@ export class AccountOverviewComponent implements OnInit, OnDestroy, AfterViewIni
         this.account.update(acc => acc ? {...acc, balance: tx.balanceAfter} : acc);
 
         this.transactions.update((prev) => [tx, ...prev]);
+        this.totalElements.update(t => t + 1);
         // Rebuild chart with the new transaction included (sorted inside)
         this.buildChart();
 
@@ -393,6 +407,7 @@ export class AccountOverviewComponent implements OnInit, OnDestroy, AfterViewIni
         this.account.update(acc => acc ? {...acc, balance: tx.balanceAfter} : acc);
 
         this.transactions.update((prev) => [tx, ...prev]);
+        this.totalElements.update(t => t + 1);
         // Rebuild chart with the new transaction included (sorted inside)
         this.buildChart();
 
@@ -495,9 +510,17 @@ export class AccountOverviewComponent implements OnInit, OnDestroy, AfterViewIni
 
   private setupObserver(): void {
     if (!this.sentinel?.nativeElement) return;
+    this.observerInitialized = false;
     this.observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting) {
+          if (!this.observerInitialized) {
+            this.observerInitialized = true;
+            // Ignore the first intersection callback that fires immediately on observe()
+            // when the sentinel is already in view on initial render (common with short lists).
+            // This ensures we load only page 0 (20 items) initially; more only on actual scroll.
+            return;
+          }
           this.loadMore();
         }
       },
@@ -513,7 +536,9 @@ export class AccountOverviewComponent implements OnInit, OnDestroy, AfterViewIni
       next: (account) => {
         this.account.set(account);
         this.transactions.set([]);
+        this.totalElements.set(0);
         this.currentPage = 0;
+        this.observerInitialized = false;
         this.loadTransactions();
       },
       error: () => {

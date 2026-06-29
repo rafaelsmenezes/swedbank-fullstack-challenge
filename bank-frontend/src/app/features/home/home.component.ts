@@ -39,6 +39,7 @@ const FLAG_MAP: Record<Currency, string> = {
             <span class="qt-icon">⚡</span>
             <h2 class="qt-title">Quick Transfer</h2>
           </div>
+          <p class="qt-subtitle">Deposit to any account in any currency</p>
 
           @if (transferSuccess()) {
             <div class="success-banner">
@@ -54,67 +55,63 @@ const FLAG_MAP: Record<Currency, string> = {
           }
 
           <form (ngSubmit)="submitTransfer()" class="qt-form">
-            <div class="form-row">
-              <div class="form-group">
-                <label class="form-label">To account</label>
-                <select
-                  class="form-select"
-                  [ngModel]="transferToAccountId()"
-                  (ngModelChange)="transferToAccountId.set($event)"
-                  name="toAccountId"
-                  required
-                >
-                  <option [ngValue]="null" disabled>Select account</option>
-                  @for (acc of accounts(); track acc.id) {
-                    <option [ngValue]="acc.id">
-                      {{ acc.currency }} Account — {{ acc.balance | currencyFormat: acc.currency }}
-                    </option>
-                  }
-                </select>
-              </div>
-
-              <div class="form-group">
-                <label class="form-label">Amount</label>
-                <input
-                  type="number"
-                  class="form-input"
-                  [ngModel]="transferAmount()"
-                  (ngModelChange)="transferAmount.set($event)"
-                  name="amount"
-                  placeholder="0.00"
-                  min="0.01"
-                  step="0.01"
-                  required
-                />
-              </div>
+            <div class="form-group">
+              <label class="form-label">To account</label>
+              <select
+                class="form-select"
+                [ngModel]="transferToAccountId()"
+                (ngModelChange)="transferToAccountId.set($event)"
+                name="toAccountId"
+                required
+              >
+                <option [ngValue]="null" disabled>Select account</option>
+                @for (acc of accounts(); track acc.id) {
+                  <option [ngValue]="acc.id">
+                    {{ getFlag(acc.currency) }} {{ acc.currency }} Account — {{ acc.balance | currencyFormat: acc.currency }}
+                  </option>
+                }
+              </select>
             </div>
 
-            <div class="form-row">
-              <div class="form-group">
-                <label class="form-label">From currency</label>
-                <select
-                  class="form-select"
-                  [ngModel]="transferFromCurrency()"
-                  (ngModelChange)="transferFromCurrency.set($event)"
-                  name="fromCurrency"
-                >
-                  @for (ccy of currencies; track ccy) {
-                    <option [value]="ccy">{{ ccy }}</option>
-                  }
-                </select>
-              </div>
+            <div class="form-group">
+              <label class="form-label">Amount</label>
+              <input
+                type="number"
+                class="form-input"
+                [ngModel]="transferAmount()"
+                (ngModelChange)="transferAmount.set($event)"
+                name="amount"
+                placeholder="0.00"
+                min="0.01"
+                step="0.01"
+                required
+              />
+            </div>
 
-              <div class="form-group">
-                <label class="form-label">Description (optional)</label>
-                <input
-                  type="text"
-                  class="form-input"
-                  [ngModel]="transferDescription()"
-                  (ngModelChange)="transferDescription.set($event)"
-                  name="description"
-                  placeholder="e.g. Rent payment"
-                />
-              </div>
+            <div class="form-group">
+              <label class="form-label">From currency (auto-converted)</label>
+              <select
+                class="form-select"
+                [ngModel]="transferFromCurrency()"
+                (ngModelChange)="transferFromCurrency.set($event)"
+                name="fromCurrency"
+              >
+                @for (ccy of currencies; track ccy) {
+                  <option [value]="ccy">{{ ccy }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Description (optional)</label>
+              <input
+                type="text"
+                class="form-input"
+                [ngModel]="transferDescription()"
+                (ngModelChange)="transferDescription.set($event)"
+                name="description"
+                placeholder="Optional description"
+              />
             </div>
 
             <button
@@ -260,7 +257,7 @@ export class HomeComponent implements OnInit {
         const currency = this.getAccountCurrency(accountId) || this.transferFromCurrency();
 
         this.transferSuccess.set(
-          `Transfer successful! New balance: ${this.formatAmount(newBalance, currency)}`
+          `✓ Transfer successful! ${currency} balance updated.`
         );
 
         // BUG FIX: update specific account balance in signal instead of full reload

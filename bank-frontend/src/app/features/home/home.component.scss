@@ -86,20 +86,16 @@ $shadow-lg:  0 8px 24px rgba(0,0,0,0.12);
   color: $gray-800;
 }
 
+.qt-subtitle {
+  font-size: $text-sm;
+  color: $gray-600;
+  margin: -8px 0 12px;
+}
+
 .qt-form {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-}
-
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-
-  @media (max-width: 640px) {
-    grid-template-columns: 1fr;
-  }
+  gap: 8px;
 }
 
 .form-group {
