@@ -28,8 +28,8 @@ const FLAG_MAP: Record<Currency, string> = {
   template: `
     <div class="home-page">
       <div class="home-header">
-        <h1 class="greeting">Good morning, Rafael 👋</h1>
-        <p class="subtitle">Here's your financial overview</p>
+        <h1 class="greeting">Welcome to Swedbank 👋</h1>
+        <p class="subtitle">Manage your accounts and transactions</p>
       </div>
 
       <div class="home-content">

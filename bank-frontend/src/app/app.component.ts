@@ -16,7 +16,7 @@ import { RouterOutlet } from '@angular/router';
           <span class="brand-name">Swedbank</span>
         </div>
         <div class="nav-right">
-          <span class="user-email">rafael@bank.com</span>
+          <span class="user-email">Personal Banking</span>
           <span class="status-dot" aria-hidden="true"></span>
         </div>
       </div>
