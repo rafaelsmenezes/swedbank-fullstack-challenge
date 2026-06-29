@@ -252,7 +252,7 @@ export class AccountOverviewComponent implements OnInit, OnDestroy, AfterViewIni
   operationSuccess = signal<string | null>(null);
 
   private currentPage = 0;
-  private readonly pageSize = 20;
+  private readonly pageSize = 100; // increased so chart gets full history on initial load (25 tx in seed)
   private observer: IntersectionObserver | null = null;
   private chart: Chart | null = null;
   private accountId = 0;
@@ -286,8 +286,8 @@ export class AccountOverviewComponent implements OnInit, OnDestroy, AfterViewIni
   }
 
   ngAfterViewInit(): void {
-    // BUG FIX: buildChart only here once when canvas is in DOM (Bug 1)
-    this.buildChart();
+    // Chart is now built after data arrives (see loadTransactions / credit / debit)
+    // because @if (account()) delays the canvas from being in the DOM at ngAfterViewInit time.
   }
 
   private loadTransactions(): void {
@@ -297,8 +297,9 @@ export class AccountOverviewComponent implements OnInit, OnDestroy, AfterViewIni
         this.isLastPage.set(page.last);
         this.loading.set(false);
         setTimeout(() => {
-          // BUG FIX: call updateChart() (not buildChart) after transactions load (Bug 1)
-          this.updateChart();
+          // Build (or rebuild) the chart now that data + canvas are ready.
+          // Using buildChart ensures creation even on first load (canvas appears only after account() is set).
+          this.buildChart();
           if (!this.isLastPage()) {
             this.setupObserver();
           }
@@ -323,7 +324,7 @@ export class AccountOverviewComponent implements OnInit, OnDestroy, AfterViewIni
         if (this.isLastPage()) {
           this.observer?.disconnect();
         }
-        this.updateChart();
+        this.buildChart();
       },
       error: () => {
         this.loadingMore.set(false);
@@ -354,7 +355,8 @@ export class AccountOverviewComponent implements OnInit, OnDestroy, AfterViewIni
         this.account.update(acc => acc ? {...acc, balance: tx.balanceAfter} : acc);
 
         this.transactions.update((prev) => [tx, ...prev]);
-        this.updateChart();
+        // Rebuild chart with the new transaction included (sorted inside)
+        this.buildChart();
 
         // BUG FIX: reset using .set() on signals (Bug 3)
         this.creditAmount.set(0);
@@ -391,7 +393,8 @@ export class AccountOverviewComponent implements OnInit, OnDestroy, AfterViewIni
         this.account.update(acc => acc ? {...acc, balance: tx.balanceAfter} : acc);
 
         this.transactions.update((prev) => [tx, ...prev]);
-        this.updateChart();
+        // Rebuild chart with the new transaction included (sorted inside)
+        this.buildChart();
 
         // BUG FIX: reset using .set() on signals (Bug 3)
         this.debitAmount.set(0);
@@ -420,13 +423,24 @@ export class AccountOverviewComponent implements OnInit, OnDestroy, AfterViewIni
   }
 
   private buildChart(): void {
-    // BUG FIX: always build if canvas available (called only from ngAfterViewInit) (Bug 1)
-    if (!this.chartCanvas?.nativeElement) return;
+    // Build chart from current transactions data.
+    // Called after data loads / updates (not only in ngAfterViewInit) because
+    // the canvas is rendered inside @if (account()) and may not exist yet at view init.
+    if (!this.chartCanvas?.nativeElement) {
+      return;
+    }
+    const { labels, data } = this.getChartData();
+    if (labels.length === 0) {
+      if (this.chart) {
+        this.chart.destroy();
+        this.chart = null;
+      }
+      return;
+    }
     if (this.chart) {
       this.chart.destroy();
       this.chart = null;
     }
-    const { labels, data } = this.getChartData();
     this.chart = new Chart(this.chartCanvas.nativeElement, {
       type: 'line',
       data: {
@@ -466,6 +480,8 @@ export class AccountOverviewComponent implements OnInit, OnDestroy, AfterViewIni
         },
       },
     });
+    // Ensure Chart.js sizes the canvas correctly after it becomes visible
+    setTimeout(() => this.chart?.resize(), 0);
   }
 
   private updateChart(): void {
