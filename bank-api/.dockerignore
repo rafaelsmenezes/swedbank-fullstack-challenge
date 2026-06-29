@@ -2,8 +2,9 @@
 build/
 .gradle/
 
-# Ensure Gradle wrapper jar is never excluded from Docker context (for Railway)
+# Ensure Gradle wrapper files are always included (required to run ./gradlew in Railway)
 !gradle/wrapper/gradle-wrapper.jar
+!gradle/wrapper/gradle-wrapper.properties
 
 # Git
 .git/
