@@ -34,8 +34,8 @@ public class DataInitializer implements CommandLineRunner {
         public void run(String... args) {
                 if (userRepository.count() == 0) {
                         User user = User.builder()
-                                        .name("Rafael")
-                                        .email("rafael@bank.com")
+                                        .name("User")
+                                        .email("user@bank.com")
                                         .build();
                         user = userRepository.save(user);
 
@@ -222,25 +222,31 @@ public class DataInitializer implements CommandLineRunner {
                 List<TransactionData> list = new ArrayList<>();
                 list.add(new TransactionData(TransactionType.CREDIT, BigDecimal.valueOf(4200000.00), "Salary"));
                 list.add(new TransactionData(TransactionType.DEBIT, BigDecimal.valueOf(850000.00), "Rent payment"));
-                list.add(new TransactionData(TransactionType.CREDIT, BigDecimal.valueOf(3100000.00), "Freelance payment"));
+                list.add(new TransactionData(TransactionType.CREDIT, BigDecimal.valueOf(3100000.00),
+                                "Freelance payment"));
                 list.add(new TransactionData(TransactionType.DEBIT, BigDecimal.valueOf(620000.00), "Groceries"));
                 list.add(new TransactionData(TransactionType.CREDIT, BigDecimal.valueOf(4800000.00), "Refund"));
                 list.add(new TransactionData(TransactionType.DEBIT, BigDecimal.valueOf(720000.00), "Utilities"));
-                list.add(new TransactionData(TransactionType.CREDIT, BigDecimal.valueOf(2900000.00), "Bank transfer in"));
+                list.add(new TransactionData(TransactionType.CREDIT, BigDecimal.valueOf(2900000.00),
+                                "Bank transfer in"));
                 list.add(new TransactionData(TransactionType.DEBIT, BigDecimal.valueOf(950000.00), "Online shopping"));
-                list.add(new TransactionData(TransactionType.CREDIT, BigDecimal.valueOf(3900000.00), "Investment return"));
+                list.add(new TransactionData(TransactionType.CREDIT, BigDecimal.valueOf(3900000.00),
+                                "Investment return"));
                 list.add(new TransactionData(TransactionType.DEBIT, BigDecimal.valueOf(1100000.00), "Restaurant"));
                 list.add(new TransactionData(TransactionType.CREDIT, BigDecimal.valueOf(4500000.00), "Salary"));
                 list.add(new TransactionData(TransactionType.DEBIT, BigDecimal.valueOf(680000.00), "Rent payment"));
                 list.add(new TransactionData(TransactionType.CREDIT, BigDecimal.valueOf(2700000.00), "Bonus"));
                 list.add(new TransactionData(TransactionType.DEBIT, BigDecimal.valueOf(540000.00), "Transport"));
-                list.add(new TransactionData(TransactionType.CREDIT, BigDecimal.valueOf(5100000.00), "Freelance payment"));
+                list.add(new TransactionData(TransactionType.CREDIT, BigDecimal.valueOf(5100000.00),
+                                "Freelance payment"));
                 list.add(new TransactionData(TransactionType.DEBIT, BigDecimal.valueOf(780000.00), "Groceries"));
                 list.add(new TransactionData(TransactionType.CREDIT, BigDecimal.valueOf(3400000.00), "Refund"));
                 list.add(new TransactionData(TransactionType.DEBIT, BigDecimal.valueOf(920000.00), "Insurance"));
-                list.add(new TransactionData(TransactionType.CREDIT, BigDecimal.valueOf(3800000.00), "Bank transfer in"));
+                list.add(new TransactionData(TransactionType.CREDIT, BigDecimal.valueOf(3800000.00),
+                                "Bank transfer in"));
                 list.add(new TransactionData(TransactionType.DEBIT, BigDecimal.valueOf(1250000.00), "ATM withdrawal"));
-                list.add(new TransactionData(TransactionType.CREDIT, BigDecimal.valueOf(4600000.00), "Investment return"));
+                list.add(new TransactionData(TransactionType.CREDIT, BigDecimal.valueOf(4600000.00),
+                                "Investment return"));
                 list.add(new TransactionData(TransactionType.DEBIT, BigDecimal.valueOf(670000.00), "Restaurant"));
                 list.add(new TransactionData(TransactionType.CREDIT, BigDecimal.valueOf(3200000.00), "Rent income"));
                 list.add(new TransactionData(TransactionType.DEBIT, BigDecimal.valueOf(580000.00), "Utilities"));
